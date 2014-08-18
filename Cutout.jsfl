@@ -9,7 +9,7 @@ var VERSION = "0.5.1";
 
 // JSON
 (function(){
-	
+
 	// ----------------------------------------------------------------------------------------------------
 	// local variables
 
@@ -44,7 +44,7 @@ var VERSION = "0.5.1";
 			}) + '"';
 		}
 		return '"' + string + '"';
-	};
+	}
 
 	// ----------------------------------------------------------------------------------------------------
 	// class
@@ -154,10 +154,10 @@ var VERSION = "0.5.1";
 					pairs.push( name + ':' + val );
 				}
 				return '{' + pairs.join( ',' ) + '}';
-			};
-	
+			}
+
 		},
-	
+
 		/**
 		 * Evaluates a given piece of json source.
 		 * @param	{String}	src
@@ -165,20 +165,20 @@ var VERSION = "0.5.1";
 		 */
 		decode:function(src)
 		{
-			if(src != null && src != '' && src != undefined)
+			if(src !== null && src !== '' && src !== undefined)
 			{
 				return eval('(' + src + ')');
 			}
 			return null;
 		},
-	
+
 		toString:function()
 		{
 			return '[class JSON]';
 		}
-	
+
 	};
-		
+
 })();
 
 
@@ -227,7 +227,7 @@ var VERSION = "0.5.1";
 		// [none|auto|ccw|cw],<times>
 		return tween_rotate_shortern[frame.motionTweenRotate] + "," + frame.motionTweenRotateTimes;
 	}
-	
+
 	function baseCommand(ctx, index, name, o)
 	{
 		o.cmd = name;
@@ -555,7 +555,7 @@ var VERSION = "0.5.1";
 					animations[items[i].name] = o;
 					haveAnimations = true;
 				}
-				
+
 			}
 		}
 
@@ -605,7 +605,6 @@ var VERSION = "0.5.1";
 		var images = JSON.decode(json.replace(/[\n\t]/g, '').replace(/\"/g, '"'));
 		var parts = {};
 
-
 		for (var frame in images.frames)
 		{
 			var data = images.frames[frame];
@@ -618,22 +617,20 @@ var VERSION = "0.5.1";
 			data.index = index;
 			parts[name].push(data);
 		}
-		
 
+    function comparePart(a, b){
+      return a.index - b.index;
+    }
 
 		for (var name in parts)
 		{
-			parts[name].sort(function(a, b){
-				return a.index - b.index;
-			})
+			parts[name].sort(comparePart);
 		}
 		for (name in parts)
 		{
 			var part = parts[name];
 			for (var i in part)
-			{
 				delete part[i].index;
-			}
 		}
 
 		if (!packed)
@@ -671,17 +668,17 @@ var VERSION = "0.5.1";
 					"scenes": compileScenes(doc, packed ? undefined : filename),
 					"animations": compileAnimations(doc, packed ? undefined : filename),
 					"parts": compileParts(doc, filename, packed)
-			}
+			};
 
 			if (packed)
 				FLfile.write(filename + ".json", JSON.encode(result));
 
-			fl.trace("[" +now()+ "] Cutout ("+VERSION+") exported: "
-				+ quantity(objectKeysCount(result.parts), "part") + ", "
-				+ quantity(objectKeysCount(result.animations), "animation") + ", "
-				+ quantity(objectKeysCount(result.scenes), "scene") + ".");
+			fl.trace("[" +now()+ "] Cutout ("+VERSION+") exported: " +
+				quantity(objectKeysCount(result.parts), "part") + ", " +
+				quantity(objectKeysCount(result.animations), "animation") + ", " +
+				quantity(objectKeysCount(result.scenes), "scene") + ".");
 		}
-	}
+	};
 
 	var doc = fl.getDocumentDOM();
 	if (!doc)
