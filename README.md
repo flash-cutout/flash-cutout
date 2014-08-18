@@ -1,6 +1,6 @@
 # Cutout
 
-* by Xpol Wan <xpolife@gmail.com> *
+*by Xpol Wan <xpolife@gmail.com>*
 
 The Flash plugin for export cutout animations.
 
@@ -14,3 +14,10 @@ Click the `install.jsfl` or form Flash -> Commands -> Run Command... and select 
 
 Flash -> Commands -> Export Cutouts
 
+## Instruction for Artists
+
+* TBD
+
+## Exported Data Format
+
+* TBD

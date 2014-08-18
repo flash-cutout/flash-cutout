@@ -24,7 +24,7 @@ function install()
 			devproxy = root + "dev/Commands/Export Cutouts.jsfl",
 			src = devproxy;
 
-	if (FLfile.exists(devproxy))
+	if (confirm("是否安装开发版本？\n\n美术设计师请选“取消”。"))
 	{
 		FLfile.write(cmd + 'Cutout.ini', root);
 	}
