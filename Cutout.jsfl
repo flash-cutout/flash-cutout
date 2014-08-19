@@ -600,16 +600,17 @@ var VERSION = "0.5.1";
 		if (!haveParts)
 			return undefined;
 
-		var format = {format: "png", bitDepth: 32, backgroundColor: "#00000000"};
-		var json = sse.exportSpriteSheet(filename, format, false);
-		var images = JSON.decode(json.replace(/[\n\t]/g, '').replace(/\"/g, '"'));
-		var parts = {};
+		var format = {format: "png", bitDepth: 32, backgroundColor: "#00000000"},
+			json = sse.exportSpriteSheet(filename, format, false),
+			images = JSON.decode(json.replace(/[\n\t]/g, '').replace(/\"/g, '"')),
+			parts = {},
+			name;
 
 		for (var frame in images.frames)
 		{
 			var data = images.frames[frame];
 			var m = frame.match(/^(.+)(\d{4})$/);
-			var name  = m[1];
+			name	= m[1];
 			var index = parseInt(m[2], 10);
 			if (parts[name] === undefined)
 				parts[name] = [];
@@ -618,11 +619,11 @@ var VERSION = "0.5.1";
 			parts[name].push(data);
 		}
 
-    function comparePart(a, b){
-      return a.index - b.index;
-    }
+		function comparePart(a, b){
+			return a.index - b.index;
+		}
 
-		for (var name in parts)
+		for (name in parts)
 		{
 			parts[name].sort(comparePart);
 		}
