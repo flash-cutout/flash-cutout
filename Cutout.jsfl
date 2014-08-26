@@ -302,7 +302,7 @@ var VERSION = "0.5.1";
   }
 
 
-  // return intersect, unique_in_a, unique_in_b
+  /* global Set: true */
   Set = {
     union: function(a, b) {
       var rv = {};
