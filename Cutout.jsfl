@@ -46,6 +46,7 @@ var VERSION = "0.5.1";
   // ----------------------------------------------------------------------------------------------------
   // class
 
+  /* global JSON: true */
   JSON = {
     /**
      * Encodes an Object as a JSON String
@@ -156,7 +157,7 @@ var VERSION = "0.5.1";
      */
     decode: function(src) {
       if (src !== null && src !== '' && src !== undefined) {
-        return eval('(' + src + ')');
+        return eval('(' + src + ')'); // jshint ignore:line
       }
       return null;
     },
