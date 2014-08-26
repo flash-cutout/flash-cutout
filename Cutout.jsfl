@@ -1,9 +1,9 @@
 ﻿
 /**
  * Timeline Compiler
- * @overview	Compile timeline into json data.
+ * @overview  Compile timeline into json data.
  *
- * @author		Xpol Wan<xpolife@gmail.com>, 2014
+ * @author    Xpol Wan<xpolife@gmail.com>, 2014
  */
 var VERSION = "0.5.1";
 
@@ -51,9 +51,9 @@ var VERSION = "0.5.1";
      * Encodes an Object as a JSON String
      * Non-integer/string keys are skipped in the object, as are keys that point to a function.
      *
-     * @name	JSON.encode
-     * @param	{Object} 	obj		The json-serializble *thing* to be converted
-     * @returns	{String}			A JSON String
+     * @name  JSON.encode
+     * @param {Object}  obj   The json-serializble *thing* to be converted
+     * @returns {String}      A JSON String
      */
     encode: function(obj) {
       if (obj === null) {
@@ -151,8 +151,8 @@ var VERSION = "0.5.1";
 
     /**
      * Evaluates a given piece of json source.
-     * @param	{String}	src
-     * @name	JSON.decode
+     * @param {String}  src
+     * @name  JSON.decode
      */
     decode: function(src) {
       if (src !== null && src !== '' && src !== undefined) {
@@ -197,16 +197,31 @@ var VERSION = "0.5.1";
     "clockwise": "cw",
     "counter-clockwise": "ccw"
   };
+  var EPSILON;
+  function fpeq(a, b)
+  {
+
+    if (!EPSILON) {
+      var eps = 1.0;
+      do {
+        eps /= 2.0;
+      }
+      while (1.0 + (eps / 2.0) != 1.0);
+      EPSILON = eps;
+    }
+
+
+    return Math.abs(a - b) < EPSILON;
+  }
 
   function matrix(mat) {
-    return {
-      "sx": mat.a,
-      "shy": mat.b,
-      "shx": mat.c,
-      "sy": mat.d,
-      "tx": mat.tx,
-      "ty": mat.ty
-    };
+    var transonly = fpeq(mat.a, 1) && fpeq(mat.d, 1) && fpeq(mat.b, 0) && fpeq(mat.c, 0);
+
+
+    return transonly ? [mat.tx, mat.ty] :
+          [mat.tx, mat.ty,
+            mat.a, mat.b,
+            mat.c, mat.d];
   }
 
   function rotation(frame) {
@@ -215,9 +230,9 @@ var VERSION = "0.5.1";
   }
 
   function baseCommand(ctx, index, name, o) {
+    o = o || {};
     o.cmd = name;
     o.index = index;
-    o.duration = ctx.frame.duration;
 
     if (ctx.frame.tweenType === "motion") {
       o.tween = ctx.frame.tweenType;
@@ -231,6 +246,11 @@ var VERSION = "0.5.1";
     return (0 === instance.name.length) ? undefined : instance.name;
   }
 
+  function libraryName(inst)
+  {
+    return inst.libraryItem.name.replace(/^parts\//, '');
+  }
+
   Command = {
     place: function(ctx, index, instance) {
       if (!supported_instance_type[instance.instanceType])
@@ -240,32 +260,29 @@ var VERSION = "0.5.1";
         return;
 
       return baseCommand(ctx, index, "Place", {
-        "name": nameOrUndefined(instance),
-        "character": instance.libraryItem.name,
+        "duration": ctx.frame.duration,
         "matrix": matrix(instance.matrix),
-        "depth": instance.depth
+        "name": nameOrUndefined(instance),
+        "character": libraryName(instance)
       });
     },
     remove: function(ctx, index, oldinstance) {
-      return baseCommand(ctx, index, "Remove", {
-        "duration": ctx.frame.duration,
-        "depth": oldinstance.depth
-      });
+      return baseCommand(ctx, index, "Remove");
     },
     move: function(ctx, index, instance) // for motion tween...
     {
       return baseCommand(ctx, index, "Move", {
-        "name": nameOrUndefined(instance),
+        "duration": ctx.frame.duration,
         "matrix": matrix(instance.matrix),
-        "depth": instance.depth
+        "name": nameOrUndefined(instance)
       });
     },
     replace: function(ctx, index, instance) {
       return baseCommand(ctx, index, "Replace", {
-        "name": nameOrUndefined(instance),
-        "character": instance.libraryItem.name,
+        "duration": ctx.frame.duration,
         "matrix": matrix(instance.matrix),
-        "depth": instance.depth
+        "name": nameOrUndefined(instance),
+        "character": libraryName(instance)
       });
     }
   };
@@ -349,13 +366,6 @@ var VERSION = "0.5.1";
       add = Set.intersect(diff, currmap);
 
     ctx.frame = frame;
-    //fl.trace("index: " + index + " elements #:" + frame.elements.length);
-
-    //traceKeys(lastmap, "lastmap");
-    //traceKeys(currmap, "currmap");
-    //traceKeys(add, "add");
-    //traceKeys(remove, "remove");
-    //traceKeys(modify, "modify");
 
     // remove old elements
     for (i in remove) {
@@ -432,7 +442,6 @@ var VERSION = "0.5.1";
     for (i in layers) {
       var layer = layers[i];
       if (supported_layer_type[layer.layerType]) {
-        //fl.trace("\t"+layer.name);
         ctx.depth = i * 10000;
         compileLayer(i, layer, ctx, objects);
       }
@@ -559,28 +568,33 @@ var VERSION = "0.5.1";
       name;
 
     for (var frame in images.frames) {
-      var data = images.frames[frame];
-      var m = frame.match(/^(.+)(\d{4})$/);
+      var data = images.frames[frame],
+          m = frame.match(/^(.+)(\d{4})$/),
+          index = parseInt(m[2], 10);
       name = m[1];
-      var index = parseInt(m[2], 10);
       if (parts[name] === undefined)
         parts[name] = [];
 
       data.index = index;
-      parts[name].push(data);
-    }
+      var f = [data.frame.x, data.frame.y, data.frame.w, data.frame.h];
 
-    function comparePart(a, b) {
-      return a.index - b.index;
-    }
+      if (data.trimmed || data.rotated)
+      {
+        f.push(data.spriteSourceSize.x);
+        f.push(data.spriteSourceSize.y);
 
-    for (name in parts) {
-      parts[name].sort(comparePart);
-    }
-    for (name in parts) {
-      var part = parts[name];
-      for (var i in part)
-        delete part[i].index;
+        if (data.rotated)
+        {
+          f.push(data.spriteSourceSize.h);
+          f.push(data.spriteSourceSize.w);
+        }
+        else
+        {
+          f.push(data.spriteSourceSize.w);
+          f.push(data.spriteSourceSize.h);
+        }
+      }
+      parts[name][index] = f;
     }
 
     if (!packed)
