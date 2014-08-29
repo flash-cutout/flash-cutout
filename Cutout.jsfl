@@ -227,7 +227,7 @@ var VERSION = "0.5.1";
 
   function rotation(frame) {
     // [none|auto|ccw|cw],<times>
-    return tween_rotate_shortern[frame.motionTweenRotate] + "," + frame.motionTweenRotateTimes;
+    return tween_rotate_shortern[frame.motionTweenRotate];
   }
 
   function baseCommand(ctx, index, name, o) {
@@ -236,8 +236,13 @@ var VERSION = "0.5.1";
     o.index = index;
 
     if (ctx.frame.tweenType === "motion") {
-      o.tween = ctx.frame.tweenType;
-      o.rotate = rotation(ctx.frame);
+      o.tween = [true];
+      var ro = rotation(ctx.frame),
+          t = frame.motionTweenRotateTimes;
+      if (ro !== "none")
+        o.tween.push(ro);
+      if (t !== 0)
+        o.tween.push(t);
     }
 
     return o;
@@ -260,7 +265,7 @@ var VERSION = "0.5.1";
       if (!supported_symbol_type[instance.symbolType])
         return;
 
-      return baseCommand(ctx, index, "Place", {
+      return baseCommand(ctx, index, "place", {
         "duration": ctx.frame.duration,
         "matrix": matrix(instance.matrix),
         "name": nameOrUndefined(instance),
@@ -268,18 +273,18 @@ var VERSION = "0.5.1";
       });
     },
     remove: function(ctx, index, oldinstance) {
-      return baseCommand(ctx, index, "Remove");
+      return baseCommand(ctx, index, "remove");
     },
     move: function(ctx, index, instance) // for motion tween...
     {
-      return baseCommand(ctx, index, "Move", {
+      return baseCommand(ctx, index, "move", {
         "duration": ctx.frame.duration,
         "matrix": matrix(instance.matrix),
         "name": nameOrUndefined(instance)
       });
     },
     replace: function(ctx, index, instance) {
-      return baseCommand(ctx, index, "Replace", {
+      return baseCommand(ctx, index, "replace", {
         "duration": ctx.frame.duration,
         "matrix": matrix(instance.matrix),
         "name": nameOrUndefined(instance),
